@@ -56,7 +56,7 @@ etiqueta_intentos = None
 codigo_secreto = ""
 intentos = 0
 titulo_temas = None
-
+nombre_jugador = ""
 boton_dark = None
 boton_matrix = None
 boton_light = None
@@ -343,7 +343,7 @@ def iniciar_juego():
 
     ventana_juego = tk.Toplevel(ventana)
     ventana_juego.title("Nueva partida")
-    ventana_juego.geometry("400x300")
+    ventana_juego.geometry("500x400")
     ventana_juego.resizable(False, False)
 
     ventana_juego.configure(
@@ -361,6 +361,25 @@ def iniciar_juego():
     )
 
     titulo_juego.pack(pady=35)
+
+    texto_nombre = tk.Label(
+    ventana_juego,
+    text="Nombre del jugador:",
+    font=("Arial", 12),
+    bg=tema["fondo"],
+    fg=tema["texto"]
+)
+
+    texto_nombre.pack(pady=10)
+
+    nombre_jugador = tk.Entry(
+        ventana_juego,
+        font=("Arial", 14),
+        justify="center",
+        width=20
+    )
+
+    nombre_jugador.pack(pady=5)
 
     texto = tk.Label(
         ventana_juego,
@@ -397,12 +416,16 @@ def iniciar_juego():
         relief="flat",
         bd=0,
         highlightthickness=0,
-        command=lambda: crear_partida(int(longitud.get()))
+        command=lambda: crear_partida(
+            int(longitud.get()),
+            nombre_jugador.get()
+        )
     )
 
     boton_iniciar.pack(pady=20)
 
 def partida_ganada():
+    guardar_record(nombre_jugador, intentos)
     tema = TEMAS[tema_actual]
 
     ventana_ganada = tk.Toplevel(ventana_juego)
@@ -413,7 +436,7 @@ def partida_ganada():
     ventana_ganada.configure(
         bg=tema["fondo"]
     )
-
+    
     titulo = tk.Label(
         ventana_ganada,
         text="¡FELICIDADES!",
@@ -422,6 +445,8 @@ def partida_ganada():
         fg=tema["texto"]
     )
     titulo.pack(pady=35)
+
+    guardar_record(nombre_jugador, intentos)
 
     texto = tk.Label(
         ventana_ganada,
@@ -503,13 +528,16 @@ def revisar_respuesta():
 
     if respuesta == codigo_secreto:
         partida_ganada()
-def crear_partida(longitud):
+def crear_partida(longitud, nombre):
     global codigo_secreto
     global intentos
     global ventana_juego
     global entrada_juego
     global etiqueta_intentos
     global resultado
+    global nombre_jugador
+
+    nombre_jugador = nombre
 
     codigo_secreto = "".join(
         random.sample("0123456789", longitud)
@@ -625,7 +653,69 @@ def crear_partida(longitud):
     )
 
     resultado.pack(pady=10)
+def mostrar_records():
+    tema = TEMAS[tema_actual]
 
+    ventana_records = tk.Toplevel(ventana)
+    ventana_records.title("Récords")
+    ventana_records.geometry("500x450")
+    ventana_records.resizable(False, False)
+
+    ventana_records.configure(
+        bg=tema["fondo"]
+    )
+
+    titulo = tk.Label(
+        ventana_records,
+        text="RÉCORDS",
+        font=("Arial", 26, "bold"),
+        bg=tema["fondo"],
+        fg=tema["texto"]
+    )
+    titulo.pack(pady=30)
+
+    try:
+        with open("records.txt", "r", encoding="utf-8") as archivo:
+            records = archivo.readlines()
+    except FileNotFoundError:
+        records = []
+
+    if records:
+        texto_records = ""
+
+        for i, record in enumerate(records, start=1):
+            nombre, intentos = record.strip().split(",")
+
+            texto_records += f"{i}. {nombre} - {intentos} intentos\n"
+
+    else:
+        texto_records = "Todavía no hay récords."
+
+    lista = tk.Label(
+        ventana_records,
+        text=texto_records,
+        font=("Arial", 14),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        justify="left"
+    )
+    lista.pack(pady=20)
+
+    boton_volver = tk.Button(
+        ventana_records,
+        text="VOLVER",
+        font=("Arial", 12, "bold"),
+        width=15,
+        bg=tema["boton"],
+        fg=tema["texto_boton"],
+        activebackground=tema["boton"],
+        activeforeground=tema["texto_boton"],
+        relief="flat",
+        bd=0,
+        highlightthickness=0,
+        command=ventana_records.destroy
+    )
+    boton_volver.pack(pady=20)
 # -----------------------------#
 #           Juego              #
 # -----------------------------#
@@ -662,7 +752,8 @@ boton_instrucciones.pack(pady=8)
 boton_records = tk.Button(ventana,
     text="RÉCORDS",
     font=("Arial", 14, "bold"),
-    width=20
+    width=20,
+    command=mostrar_records
 )
 boton_records.pack(pady=8)
 
@@ -682,6 +773,9 @@ boton_salir = tk.Button(ventana,
 )
 boton_salir.pack(pady=8)
 
+def guardar_record(nombre, intentos):
+    with open("records.txt", "a", encoding="utf-8") as archivo:
+        archivo.write(f"{nombre},{intentos}\n")
 # -----------------------------#
 #            Bucle             #
 # -----------------------------#
