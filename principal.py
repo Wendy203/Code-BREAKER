@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import random
 
 ################################
 #            Temas             #
@@ -301,6 +301,86 @@ def mostrar_temas():
     )
     boton_volver_temas.pack(pady=15)
 
+def iniciar_juego():
+    global ventana_juego
+
+    tema = TEMAS[tema_actual]
+
+    ventana_juego = tk.Toplevel(ventana)
+    ventana_juego.title("Nueva partida")
+    ventana_juego.geometry("400x300")
+    ventana_juego.resizable(False, False)
+
+    ventana_juego.configure(
+        bg=tema["fondo"]
+    )
+
+    titulo_juego = tk.Label(
+        ventana_juego,
+        text="CODE BREAKER",
+        font=("Arial", 26, "bold"),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0
+    )
+
+    titulo_juego.pack(pady=35)
+
+    texto = tk.Label(
+        ventana_juego,
+        text="¿Cuántos números tendrá el código?",
+        font=("Arial", 12),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0
+    )
+
+    texto.pack(pady=10)
+
+    longitud = tk.Spinbox(
+        ventana_juego,
+        from_=3,
+        to=10,
+        font=("Arial", 16),
+        width=5,
+        justify="center"
+    )
+
+    longitud.pack(pady=15)
+
+    boton_iniciar = tk.Button(
+        ventana_juego,
+        text="INICIAR",
+        font=("Arial", 12, "bold"),
+        width=15,
+        bg=tema["boton"],
+        fg=tema["texto_boton"],
+        activebackground=tema["boton"],
+        activeforeground=tema["texto_boton"],
+        relief="flat",
+        bd=0,
+        highlightthickness=0,
+        command=lambda: crear_partida(int(longitud.get()))
+    )
+
+    boton_iniciar.pack(pady=20)
+
+def crear_partida(longitud):
+    global codigo_secreto
+    global intentos
+    global ventana_juego
+
+    codigo_secreto = "".join(
+        random.sample("0123456789", longitud)
+    )
+
+    intentos = 0
+
+    # Aquí después construiremos la pantalla del juego
+    print("Código secreto:", codigo_secreto)
+
 # -----------------------------#
 #           Juego              #
 # -----------------------------#
@@ -317,10 +397,12 @@ titulo.pack(pady=(70, 40))
 #           Botones            #
 # -----------------------------#
 
-boton_jugar = tk.Button(ventana,
+boton_jugar = tk.Button(
+    ventana,
     text="JUGAR",
     font=("Arial", 14, "bold"),
-    width=20
+    width=20,
+    command=iniciar_juego
 )
 boton_jugar.pack(pady=8)
 
