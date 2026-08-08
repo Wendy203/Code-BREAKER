@@ -16,7 +16,7 @@ TEMAS = {
     "matrix": {
         "fondo": "#000000",
         "texto": "#00FF41",
-        "boton": "#001A00",
+        "boton": "#003B00",
         "texto_boton": "#00FF41"
     },
 
@@ -28,6 +28,146 @@ TEMAS = {
     }
 }
 tema_actual = "dark"
+
+# -----------------------------#
+#       Efecto Matrix          #
+# -----------------------------#
+
+matrices = {}
+ventanas_abiertas = []
+
+CARACTERES_MATRIX = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def iniciar_matrix_en(ventana_destino):
+    # Si ya tiene Matrix, no hacemos otro
+    if ventana_destino in matrices:
+        return
+
+    canvas = tk.Canvas(
+        ventana_destino,
+        bg="#000000",
+        highlightthickness=0
+    )
+
+    canvas.place(
+        x=0,
+        y=0,
+        relwidth=1,
+        relheight=1
+    )
+
+    # Colocar el Canvas detrás de los demás widgets
+    ventana_destino.tk.call("lower", canvas._w)
+
+    columnas = []
+
+    for x in range(0, 800, 20):
+        columnas.append({
+            "x": x,
+            "y": random.randint(-500, 0),
+            "velocidad": random.randint(3, 8)
+        })
+
+    matrices[ventana_destino] = {
+        "canvas": canvas,
+        "columnas": columnas,
+        "animacion": None
+    }
+
+    animar_matrix(ventana_destino)
+
+
+def animar_matrix(ventana_destino):
+
+    if ventana_destino not in matrices:
+        return
+
+    if not ventana_destino.winfo_exists():
+        matrices.pop(ventana_destino, None)
+        return
+
+    datos = matrices[ventana_destino]
+    canvas = datos["canvas"]
+    columnas = datos["columnas"]
+
+    canvas.delete("all")
+
+    ancho = canvas.winfo_width()
+    alto = canvas.winfo_height()
+
+    if ancho <= 1:
+        ancho = 800
+
+    if alto <= 1:
+        alto = 500
+
+    for columna in columnas:
+
+        x = columna["x"]
+        y = columna["y"]
+
+        # Si la ventana es más pequeña, no dibujamos
+        # columnas que estén fuera de ella
+        if x > ancho:
+            continue
+
+        for i in range(8):
+
+            caracter = random.choice(CARACTERES_MATRIX)
+
+            canvas.create_text(
+                x,
+                y - (i * 18),
+                text=caracter,
+                fill="#00FF41",
+                font=("Courier New", 12, "bold")
+            )
+
+        columna["y"] += columna["velocidad"]
+
+        if columna["y"] > alto + 100:
+            columna["y"] = random.randint(-300, 0)
+
+    datos["animacion"] = ventana_destino.after(
+        50,
+        lambda: animar_matrix(ventana_destino)
+    )
+
+
+def detener_matrix_en(ventana_destino):
+
+    if ventana_destino not in matrices:
+        return
+
+    datos = matrices[ventana_destino]
+
+    if datos["animacion"] is not None:
+        try:
+            ventana_destino.after_cancel(datos["animacion"])
+        except:
+            pass
+
+    datos["canvas"].destroy()
+
+    del matrices[ventana_destino]
+
+
+def actualizar_matrix():
+
+    if tema_actual == "matrix":
+        iniciar_matrix_en(ventana)
+
+        for ventana_destino in ventanas_abiertas:
+            if ventana_destino.winfo_exists():
+                iniciar_matrix_en(ventana_destino)
+
+    else:
+        detener_matrix_en(ventana)
+
+        for ventana_destino in ventanas_abiertas:
+            if ventana_destino.winfo_exists():
+                detener_matrix_en(ventana_destino)
 
 ################################
 #            Menu              #
@@ -50,6 +190,7 @@ boton_volver_instrucciones = None
 
 ventana_temas = None
 ventana_juego = None
+ventana_records = None
 entrada_juego = None
 resultado = None
 etiqueta_intentos = None
@@ -73,9 +214,11 @@ def mostrar_instrucciones():
     # Si la ventana ya existe, solamente la mostramos
     if ventana_instrucciones is not None and ventana_instrucciones.winfo_exists():
         ventana_instrucciones.lift()
+        actualizar_matrix()
         return
 
     ventana_instrucciones = tk.Toplevel(ventana)
+    ventanas_abiertas.append(ventana_instrucciones)
     ventana_instrucciones.title("Instrucciones")
     ventana_instrucciones.geometry("700x500")
     ventana_instrucciones.resizable(False, False)
@@ -132,6 +275,8 @@ text="¿CÓMO JUGAR?\n\n"
         command=ventana_instrucciones.destroy
     )
     boton_volver_instrucciones.pack(pady=30)
+    if tema_actual == "matrix":
+        iniciar_matrix_en(ventana_instrucciones)
 
 def cambiar_tema(nombre_tema):
     global tema_actual
@@ -240,6 +385,8 @@ def cambiar_tema(nombre_tema):
             activebackground=tema["boton"],
             activeforeground=tema["texto_boton"]
     )
+    
+    actualizar_matrix()
 
 def mostrar_temas():
     global ventana_temas
@@ -257,6 +404,7 @@ def mostrar_temas():
         return
 
     ventana_temas = tk.Toplevel(ventana)
+    ventanas_abiertas.append(ventana_temas)
     ventana_temas.title("Tema")
     ventana_temas.geometry("400x350")
     ventana_temas.resizable(False, False)
@@ -342,6 +490,7 @@ def iniciar_juego():
     tema = TEMAS[tema_actual]
 
     ventana_juego = tk.Toplevel(ventana)
+    ventanas_abiertas.append(ventana_juego)
     ventana_juego.title("Nueva partida")
     ventana_juego.geometry("500x400")
     ventana_juego.resizable(False, False)
@@ -349,6 +498,9 @@ def iniciar_juego():
     ventana_juego.configure(
         bg=tema["fondo"]
     )
+
+    if tema_actual == "matrix":
+        iniciar_matrix_en(ventana_juego)
 
     titulo_juego = tk.Label(
         ventana_juego,
@@ -425,7 +577,6 @@ def iniciar_juego():
     boton_iniciar.pack(pady=20)
 
 def partida_ganada():
-    guardar_record(nombre_jugador, intentos)
     tema = TEMAS[tema_actual]
 
     ventana_ganada = tk.Toplevel(ventana_juego)
@@ -552,6 +703,7 @@ def crear_partida(longitud, nombre):
 
     # Creamos la ventana real del juego
     ventana_juego = tk.Toplevel(ventana)
+    ventanas_abiertas.append(ventana_juego)
     ventana_juego.title("Code Breaker")
     ventana_juego.geometry("600x500")
     ventana_juego.resizable(False, False)
@@ -561,6 +713,9 @@ def crear_partida(longitud, nombre):
     ventana_juego.configure(
         bg=tema["fondo"]
     )
+
+    if tema_actual == "matrix":
+        iniciar_matrix_en(ventana_juego)
 
     titulo_juego = tk.Label(
         ventana_juego,
@@ -654,9 +809,12 @@ def crear_partida(longitud, nombre):
 
     resultado.pack(pady=10)
 def mostrar_records():
+    global ventana_records
+
     tema = TEMAS[tema_actual]
 
     ventana_records = tk.Toplevel(ventana)
+    ventanas_abiertas.append(ventana_records)
     ventana_records.title("Récords")
     ventana_records.geometry("500x450")
     ventana_records.resizable(False, False)
@@ -664,6 +822,9 @@ def mostrar_records():
     ventana_records.configure(
         bg=tema["fondo"]
     )
+
+    if tema_actual == "matrix":
+        iniciar_matrix_en(ventana_records)
 
     titulo = tk.Label(
         ventana_records,
