@@ -49,6 +49,9 @@ texto_instrucciones = None
 boton_volver_instrucciones = None
 
 ventana_temas = None
+ventana_juego = None
+codigo_secreto = ""
+intentos = 0
 titulo_temas = None
 
 boton_dark = None
@@ -185,6 +188,35 @@ def cambiar_tema(nombre_tema):
         ventana_temas.configure(
         bg=tema["fondo"]
     )
+        
+        # Actualizar ventana de selección de juego
+    if ventana_juego is not None and ventana_juego.winfo_exists():
+
+        ventana_juego.configure(
+            bg=tema["fondo"]
+        )
+
+        for widget in ventana_juego.winfo_children():
+
+            if isinstance(widget, tk.Label):
+                widget.configure(
+                    bg=tema["fondo"],
+                    fg=tema["texto"]
+                )
+
+            elif isinstance(widget, tk.Button):
+                widget.configure(
+                    bg=tema["boton"],
+                    fg=tema["texto_boton"],
+                    activebackground=tema["boton"],
+                    activeforeground=tema["texto_boton"]
+                )
+
+            elif isinstance(widget, tk.Spinbox):
+                widget.configure(
+                    bg=tema["boton"],
+                    fg=tema["texto_boton"]
+                )
 
     titulo_temas.configure(
         bg=tema["fondo"],
@@ -378,8 +410,111 @@ def crear_partida(longitud):
 
     intentos = 0
 
-    # Aquí después construiremos la pantalla del juego
-    print("Código secreto:", codigo_secreto)
+    # Cerramos la ventana de selección
+    ventana_juego.destroy()
+
+    # Creamos la ventana real del juego
+    ventana_juego = tk.Toplevel(ventana)
+    ventana_juego.title("Code Breaker")
+    ventana_juego.geometry("600x500")
+    ventana_juego.resizable(False, False)
+
+    tema = TEMAS[tema_actual]
+
+    ventana_juego.configure(
+        bg=tema["fondo"]
+    )
+
+    titulo_juego = tk.Label(
+        ventana_juego,
+        text="CODE BREAKER",
+        font=("Arial", 28, "bold"),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0,
+        relief="flat"
+    )
+
+    titulo_juego.pack(pady=(35, 10))
+
+    texto_longitud = tk.Label(
+        ventana_juego,
+        text=f"Código de {longitud} números",
+        font=("Arial", 12),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0,
+        relief="flat"
+    )
+
+    texto_longitud.pack(pady=5)
+
+    entrada_juego = tk.Entry(
+        ventana_juego,
+        font=("Arial", 20),
+        justify="center",
+        width=15
+    )
+
+    entrada_juego.pack(pady=20)
+
+    boton_revisar = tk.Button(
+        ventana_juego,
+        text="REVISAR",
+        font=("Arial", 12, "bold"),
+        width=15,
+        bg=tema["boton"],
+        fg=tema["texto_boton"],
+        activebackground=tema["boton"],
+        activeforeground=tema["texto_boton"],
+        relief="flat",
+        bd=0,
+        highlightthickness=0
+    )
+
+    boton_revisar.pack(pady=10)
+
+    etiqueta_intentos = tk.Label(
+        ventana_juego,
+        text="Intentos: 0",
+        font=("Arial", 12),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0,
+        relief="flat"
+    )
+
+    etiqueta_intentos.pack(pady=15)
+
+    etiqueta_pistas = tk.Label(
+        ventana_juego,
+        text="PISTAS",
+        font=("Arial", 14, "bold"),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        bd=0,
+        highlightthickness=0,
+        relief="flat"
+    )
+
+    etiqueta_pistas.pack(pady=(10, 5))
+
+    resultado = tk.Label(
+        ventana_juego,
+        text="",
+        font=("Arial", 12),
+        bg=tema["fondo"],
+        fg=tema["texto"],
+        justify="left",
+        bd=0,
+        highlightthickness=0,
+        relief="flat"
+    )
+
+    resultado.pack(pady=10)
 
 # -----------------------------#
 #           Juego              #
