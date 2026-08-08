@@ -50,6 +50,9 @@ boton_volver_instrucciones = None
 
 ventana_temas = None
 ventana_juego = None
+entrada_juego = None
+resultado = None
+etiqueta_intentos = None
 codigo_secreto = ""
 intentos = 0
 titulo_temas = None
@@ -399,14 +402,70 @@ def iniciar_juego():
 
     boton_iniciar.pack(pady=20)
 
+def revisar_respuesta():
+    global intentos
+
+    respuesta = entrada_juego.get()
+
+    # Comprobar que tenga la longitud correcta
+    if len(respuesta) != len(codigo_secreto):
+        resultado.configure(
+            text=f"Debes introducir {len(codigo_secreto)} números."
+        )
+        return
+
+    # Comprobar que solamente sean números
+    if not respuesta.isdigit():
+        resultado.configure(
+            text="Solo puedes introducir números."
+        )
+        return
+
+    # Comprobar que no haya números repetidos
+    if len(set(respuesta)) != len(respuesta):
+        resultado.configure(
+            text="No puedes repetir números."
+        )
+        return
+
+    intentos += 1
+
+    pistas = ""
+
+    for i in range(len(codigo_secreto)):
+
+        if respuesta[i] == codigo_secreto[i]:
+            pistas += "*"
+
+        elif respuesta[i] in codigo_secreto:
+            pistas += "-"
+
+        else:
+            pistas += " "
+
+    # Reorganizar: primero * y después -
+    asteriscos = pistas.count("*")
+    guiones = pistas.count("-")
+
+    pistas = " ".join(["*"] * asteriscos + ["-"] * guiones)
+
+    resultado.configure(
+        text=f"{respuesta}\n{pistas}",
+        font=("Arial", 16)
+    )
 def crear_partida(longitud):
     global codigo_secreto
     global intentos
     global ventana_juego
+    global entrada_juego
+    global etiqueta_intentos
+    global resultado
 
     codigo_secreto = "".join(
         random.sample("0123456789", longitud)
     )
+
+    print("Código secreto:", codigo_secreto)
 
     intentos = 0
 
@@ -471,7 +530,8 @@ def crear_partida(longitud):
         activeforeground=tema["texto_boton"],
         relief="flat",
         bd=0,
-        highlightthickness=0
+        highlightthickness=0,
+        command=revisar_respuesta
     )
 
     boton_revisar.pack(pady=10)
