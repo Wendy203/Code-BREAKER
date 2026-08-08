@@ -187,7 +187,7 @@ ventana_instrucciones = None
 titulo_instrucciones = None
 texto_instrucciones = None
 boton_volver_instrucciones = None
-
+texto_intentos = None
 ventana_temas = None
 ventana_juego = None
 ventana_records = None
@@ -248,7 +248,8 @@ text="¿CÓMO JUGAR?\n\n"
      "• El código secreto está formado por números sin repetir.\n"
      "• Un * por número correcto en la posición correcta.\n"
      "• Un - por número correcto en posición incorrecta.\n"
-     "• Sin símbolo → el número no pertenece al código.\n\n"
+     "• Sin símbolo → el número no pertenece al código.\n"
+     "• La posición de los simbolos no esta asociada a la posición de los números.\n\n"
      
      "¡Intenta resolverlo con la menor cantidad de intentos!",
     font=("Arial", 12),
@@ -653,6 +654,8 @@ def revisar_respuesta():
 
     intentos += 1
 
+    texto_intentos.set(f"Intentos: {intentos}")
+
     pistas = ""
 
     for i in range(len(codigo_secreto)):
@@ -685,6 +688,7 @@ def crear_partida(longitud, nombre):
     global ventana_juego
     global entrada_juego
     global etiqueta_intentos
+    global texto_intentos
     global resultado
     global nombre_jugador
 
@@ -769,9 +773,12 @@ def crear_partida(longitud, nombre):
 
     boton_revisar.pack(pady=10)
 
+    texto_intentos = tk.StringVar()
+    texto_intentos.set("Intentos: 0")
+
     etiqueta_intentos = tk.Label(
         ventana_juego,
-        text="Intentos: 0",
+        textvariable=texto_intentos,
         font=("Arial", 12),
         bg=tema["fondo"],
         fg=tema["texto"],
