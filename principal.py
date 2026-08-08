@@ -402,6 +402,53 @@ def iniciar_juego():
 
     boton_iniciar.pack(pady=20)
 
+def partida_ganada():
+    tema = TEMAS[tema_actual]
+
+    ventana_ganada = tk.Toplevel(ventana_juego)
+    ventana_ganada.title("¡Ganaste!")
+    ventana_ganada.geometry("400x300")
+    ventana_ganada.resizable(False, False)
+
+    ventana_ganada.configure(
+        bg=tema["fondo"]
+    )
+
+    titulo = tk.Label(
+        ventana_ganada,
+        text="¡FELICIDADES!",
+        font=("Arial", 24, "bold"),
+        bg=tema["fondo"],
+        fg=tema["texto"]
+    )
+    titulo.pack(pady=35)
+
+    texto = tk.Label(
+        ventana_ganada,
+        text=f"¡Ganaste en {intentos} intentos!\n\n"
+             f"Código: {codigo_secreto}",
+        font=("Arial", 14),
+        bg=tema["fondo"],
+        fg=tema["texto"]
+    )
+    texto.pack(pady=10)
+
+    boton_menu = tk.Button(
+        ventana_ganada,
+        text="VOLVER AL MENÚ",
+        font=("Arial", 12, "bold"),
+        width=18,
+        bg=tema["boton"],
+        fg=tema["texto_boton"],
+        activebackground=tema["boton"],
+        activeforeground=tema["texto_boton"],
+        relief="flat",
+        bd=0,
+        highlightthickness=0,
+        command=lambda: [ventana_ganada.destroy(), ventana_juego.destroy()]
+    )
+    boton_menu.pack(pady=20)
+
 def revisar_respuesta():
     global intentos
 
@@ -453,6 +500,9 @@ def revisar_respuesta():
         text=f"{respuesta}\n{pistas}",
         font=("Arial", 16)
     )
+
+    if respuesta == codigo_secreto:
+        partida_ganada()
 def crear_partida(longitud):
     global codigo_secreto
     global intentos
